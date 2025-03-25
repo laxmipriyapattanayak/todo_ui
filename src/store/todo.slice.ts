@@ -20,7 +20,7 @@ interface Istate {
 
 const api = new Api({
   baseUrl:
-    "https://todo-app.proudforest-fddd498f.westeurope.azurecontainerapps.io/todo",
+    " https://todo-app.whitewater-d0b6f62a.westeurope.azurecontainerapps.io/todo",
 });
 
 const initialState: Istate = {
