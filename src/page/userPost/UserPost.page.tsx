@@ -1,37 +1,77 @@
-import { Navigate, useParams } from "react-router-dom";
-import "./index.css";
+import { Button, CircularProgress, Modal } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Post } from "../../component/Post/Post.component";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
+import CreateTodo from "../../component/CreateTodo/CreateTodo.component";
 import { APIStatus, fetchUserPost } from "../../store/todo.slice";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
-import { Button } from "@mui/material";
+import "./index.css";
 
-export const UserPost = () => {
-  const navigate = useNavigate();
+export const UserPosts = () => {
   const { userId } = useParams();
   const dispatch = useAppDispatch();
   const { userPost } = useAppSelector((state) => state.todoSlice);
+  const createTodoStatus = useAppSelector(
+    (state) => state.todoSlice.createTodo.status
+  );
+  const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    getData();
+    if (userId) dispatch(fetchUserPost(userId));
   }, [userId]);
 
-  const getData = () => {
-    if (userId) dispatch(fetchUserPost(userId));
-  };
+  useEffect(() => {
+    if (userId && createTodoStatus === APIStatus.FULFILLED)
+      dispatch(fetchUserPost(userId));
+  }, [userId, createTodoStatus]);
 
-  const createTodoClick = () => {
-    navigate(`/user/${userId}/createTodo`);
+  const openModal = () => {
+    setOpen(true);
+  };
+  const closeModal = () => {
+    setOpen(false);
   };
 
   return (
-    <>
-      post{userId}
-      {userPost.status === APIStatus.PENDING && <CircularProgress />}
-      <Button variant="contained" size="medium" onClick={createTodoClick}>
-        Create New Todo
-      </Button>
-    </>
+    <div className="parent">
+      <div>
+        <Modal
+          open={open}
+          onClose={closeModal}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <CreateTodo onClose={closeModal} />
+        </Modal>
+      </div>
+
+      {userPost.status === APIStatus.PENDING ? (
+        <CircularProgress />
+      ) : (
+        <div className="posts">
+          <div className="user_name">
+            <h1>User{userId}</h1>
+          </div>
+
+          {userPost.data.length > 0 ? (
+            <>
+              {" "}
+              <div className="btn">
+                <Button variant="contained" onClick={openModal}>
+                  Add new
+                </Button>
+              </div>
+              <div className="posts-wrapper">
+                {userPost.data.map((post, index) => (
+                  <Post task={post} key={index} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <p>No Data</p>
+          )}
+        </div>
+      )}
+    </div>
   );
 };

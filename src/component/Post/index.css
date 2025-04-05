@@ -1,0 +1,33 @@
+.post {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 5px;
+  border: 1px solid blanchedalmond;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  height: 150px;
+  text-align: left;
+}
+
+.post .mui_chip {
+  margin-top: auto;
+}
+.post-title,
+.post-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.post-title h2,
+.post-date p,
+.post-description {
+  margin: 0;
+}
+.post-description {
+  text-align: left;
+}
