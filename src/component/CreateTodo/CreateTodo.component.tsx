@@ -1,9 +1,9 @@
 import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { createNewTodo } from "../../store/todo.slice";
+import { createNewTodo, updateTodo } from "../../store/todo.slice";
 import { useAppDispatch } from "../../store/hook";
-import { TaskStatus } from "../../myApi";
+import { Task, TaskStatus } from "../../myApi";
 
 const style = {
   position: "absolute",
@@ -17,7 +17,7 @@ const style = {
   borderRadius: 5,
 };
 
-const CreateTodo = ({ onClose }: { onClose: () => void }) => {
+const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   const { userId } = useParams();
   const dispatch = useAppDispatch();
 
@@ -26,12 +26,8 @@ const CreateTodo = ({ onClose }: { onClose: () => void }) => {
     desc: "",
   });
 
-  const [todo, setTodo] = useState({
-    title: "",
-    description: "",
-    status: TaskStatus.PENDING,
-    date: "",
-    //tags: [{ taskId: 0, tagId: 0 }],
+  const [todo, setTodo] = useState<Task>({
+    ...data,
   });
 
   const handleChange = (
@@ -55,19 +51,22 @@ const CreateTodo = ({ onClose }: { onClose: () => void }) => {
     setErrorState(errState);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     if (userId) {
-      const localTodo = todo;
-      localTodo.date = new Date().toISOString();
-      dispatch(createNewTodo({ userId, todo }));
+      if (todo.taskId) {
+        dispatch(updateTodo({ userId, todo }));
+      } else {
+        const localTodo = todo;
+        localTodo.date = new Date().toISOString();
+        dispatch(createNewTodo({ userId, todo: localTodo }));
+      }
     }
     setTodo({
       title: "",
       description: "",
       status: TaskStatus.PENDING,
       date: "",
+      tags: [],
     });
     onClose();
   };
@@ -124,12 +123,12 @@ const CreateTodo = ({ onClose }: { onClose: () => void }) => {
       {/* <Button>+ Add Tag</Button> */}
 
       <Button
-        onClick={handleSubmit}
+        onClick={() => handleSubmit()}
         variant="contained"
         color="primary"
         fullWidth
         sx={{ mt: 3 }}
-        disabled={!(todo.description.length && todo.title.length)}
+        disabled={!(todo.description?.length && todo.title.length)}
       >
         Create To-Do
       </Button>

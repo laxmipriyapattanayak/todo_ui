@@ -31,3 +31,11 @@
 .post-description {
   text-align: left;
 }
+.post_action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-top: 10px;
+  margin-top: auto;
+}
