@@ -1,11 +1,15 @@
 import { Task, TaskStatus } from "../../myApi";
 import dayjs from "dayjs";
 import "./index.css";
+import { useAppDispatch } from "../../store/hook";
 import { convertStatusToLabel } from "../../helper";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import { Chip, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { deleteTodo } from "../../store/todo.slice";
+import { useParams } from "react-router-dom";
 
 export const Post = ({
   task,
@@ -17,7 +21,12 @@ export const Post = ({
   const openAndPopulateModal = () => {
     openEditModal(task);
   };
-
+  const dispatch = useAppDispatch();
+  const { userId } = useParams();
+  const handledeletePost = () => {
+    console.log(task);
+    dispatch(deleteTodo({ userId: String(userId), todo: task }));
+  };
   return (
     <div className="post">
       <div className="post-title">
@@ -25,6 +34,9 @@ export const Post = ({
         <h2>{task.title}</h2>
         <IconButton onClick={openAndPopulateModal}>
           <EditIcon />
+        </IconButton>
+        <IconButton onClick={handledeletePost}>
+          <DeleteIcon />
         </IconButton>
       </div>
       <p className="post-description">{task.description}</p>

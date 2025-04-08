@@ -18,6 +18,7 @@ interface Istate {
   userPost: IApiResponse<Task[]>;
   createTodo: IApiResponse<Task>;
   updateTodo: IApiResponse<Task>;
+  deleteTodo: IApiResponse<null>;
 }
 
 interface CreateTodoArgs {
@@ -40,6 +41,7 @@ const initialState: Istate = {
     data: { title: "", tags: [], date: "" },
     status: APIStatus.IDLE,
   },
+  deleteTodo: { data: null, status: APIStatus.IDLE },
 };
 
 export const fetchUserPost = createAsyncThunk(
@@ -64,6 +66,13 @@ export const updateTodo = createAsyncThunk(
     const updatedData: TaskUpdate = { ...todo, taskId: todo.taskId! };
     const res = await api.userId.tasksUpdate(todo.taskId!, userId, updatedData);
     return res.data;
+  }
+);
+
+export const deleteTodo = createAsyncThunk(
+  "deleteTodoSlice/deleteTodo",
+  async ({ userId, todo }: CreateTodoArgs) => {
+    await api.userId.tasksDelete(todo.taskId!, userId);
   }
 );
 
@@ -102,14 +111,23 @@ export const todoSlice = createSlice({
       })
       .addCase(updateTodo.rejected, (state) => {
         state.updateTodo.status = APIStatus.FAILED;
-        state.updateTodo.error = "Failed to update todo";
       })
       .addCase(updateTodo.fulfilled, (state, action) => {
         state.updateTodo.status = APIStatus.FULFILLED;
         state.updateTodo.data = action.payload;
+      })
+      //delete Todo
+      .addCase(deleteTodo.pending, (state) => {
+        state.deleteTodo.status = APIStatus.PENDING;
+      })
+      .addCase(deleteTodo.rejected, (state) => {
+        state.deleteTodo.status = APIStatus.FAILED;
+      })
+      .addCase(deleteTodo.fulfilled, (state) => {
+        state.deleteTodo.status = APIStatus.FULFILLED;
       });
   },
 });
 
-todoSlice.actions = { fetchUserPost, createNewTodo, updateTodo };
+todoSlice.actions = { fetchUserPost, createNewTodo, updateTodo, deleteTodo };
 export default todoSlice.reducer;

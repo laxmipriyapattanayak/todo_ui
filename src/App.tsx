@@ -9,7 +9,6 @@ function App() {
       <Routes>
         <Route index element={<HomePage />} />
         <Route path="/user/:userId" element={<UserPosts />} />
-        <Route path="/user/:userId/createTodo" element={<UserPosts />} />
       </Routes>
     </BrowserRouter>
   );

@@ -15,9 +15,11 @@ export const UserPosts = () => {
   const createTodoStatus = useAppSelector(
     (state) => state.todoSlice.createTodo.status
   );
-
   const updateTodoStatus = useAppSelector(
     (state) => state.todoSlice.updateTodo.status
+  );
+  const deleteTodoStatus = useAppSelector(
+    (state) => state.todoSlice.deleteTodo.status
   );
   const [open, setOpen] = useState<boolean>(false);
   const initialData = {
@@ -46,8 +48,11 @@ export const UserPosts = () => {
       if (updateTodoStatus === APIStatus.FULFILLED) {
         closeModal();
       }
+      if (deleteTodoStatus === APIStatus.FULFILLED) {
+        dispatch(fetchUserPost(userId));
+      }
     }
-  }, [userId, createTodoStatus, updateTodoStatus]);
+  }, [userId, createTodoStatus, updateTodoStatus, deleteTodoStatus]);
 
   const openModal = () => {
     setOpen(true);
@@ -83,15 +88,18 @@ export const UserPosts = () => {
           <div className="user_name">
             <h1>User{userId}</h1>
           </div>
+          <div className="btn">
+            <Button variant="contained" onClick={openModal}>
+              Add new
+            </Button>
+          </div>
 
           {userPost.data.length > 0 ? (
             <>
               {" "}
-              <div className="btn">
-                <Button variant="contained" onClick={openModal}>
+              {/* <Button variant="contained" onClick={openModal}>
                   Add new
-                </Button>
-              </div>
+                </Button> */}
               <div className="posts-wrapper">
                 {userPost.data.map((post, index) => (
                   <Post task={post} key={index} openEditModal={openEditModal} />
