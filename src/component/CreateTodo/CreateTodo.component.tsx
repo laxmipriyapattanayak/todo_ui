@@ -1,9 +1,13 @@
-import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { createNewTodo, updateTodo } from "../../store/todo.slice";
 import { useAppDispatch } from "../../store/hook";
 import { Task, TaskStatus } from "../../myApi";
+import dayjs from "dayjs";
+import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers";
 
 const style = {
   position: "absolute",
@@ -16,6 +20,7 @@ const style = {
   p: 4,
   borderRadius: 5,
 };
+const today = dayjs();
 
 const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   const { userId } = useParams();
@@ -25,7 +30,6 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
     title: "",
     desc: "",
   });
-
   const [todo, setTodo] = useState<Task>({
     ...data,
   });
@@ -57,7 +61,7 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         dispatch(updateTodo({ userId, todo }));
       } else {
         const localTodo = todo;
-        localTodo.date = new Date().toISOString();
+        // localTodo.date = new Date().toISOString();
         dispatch(createNewTodo({ userId, todo: localTodo }));
       }
     }
@@ -77,7 +81,7 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         variant="h5"
         sx={{ mb: 2, fontWeight: "bold", color: "primary.main" }}
       >
-        Create New To-Do
+        {todo?.taskId ? "Update To-do" : "Create To-do"}
       </Typography>
 
       <TextField
@@ -115,7 +119,20 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         <MenuItem value="IN_PROGRESS">Started</MenuItem>
         <MenuItem value="COMPLETED">Done</MenuItem>
       </TextField>
-
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          label="Select date"
+          disablePast
+          value={todo.date ? dayjs(todo.date) : null} // Convert string to Dayjs
+          onChange={(newDate) => {
+            if (newDate) {
+              const formatted = newDate.format("YYYY-MM-DD");
+              setTodo((prev) => ({ ...prev, date: formatted })); // Store as string
+              console.log("Selected date:", formatted);
+            }
+          }}
+        />
+      </LocalizationProvider>
       {/* <Typography variant="h6" sx={{ mt: 2 }}>
         Tags
       </Typography> */}
@@ -130,7 +147,7 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         sx={{ mt: 3 }}
         disabled={!(todo.description?.length && todo.title.length)}
       >
-        Create To-Do
+        {todo?.taskId ? "Update To-do" : "Create To-do"}
       </Button>
     </Box>
   );

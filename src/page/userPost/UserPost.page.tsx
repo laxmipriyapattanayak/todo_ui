@@ -1,10 +1,16 @@
-import { Button, CircularProgress, Modal } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  MenuItem,
+  Modal,
+  Select,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Post } from "../../component/Post/Post.component";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import CreateTodo from "../../component/CreateTodo/CreateTodo.component";
-import { APIStatus, fetchUserPost } from "../../store/todo.slice";
+import { APIStatus, DateFilter, fetchUserPost } from "../../store/todo.slice";
 import "./index.css";
 import { Task, TaskStatus } from "../../myApi";
 
@@ -22,6 +28,7 @@ export const UserPosts = () => {
     (state) => state.todoSlice.deleteTodo.status
   );
   const [open, setOpen] = useState<boolean>(false);
+  const [filter, setFilter] = useState<DateFilter>(DateFilter.All);
   const initialData = {
     description: "",
     title: "",
@@ -33,23 +40,21 @@ export const UserPosts = () => {
   const [editModalData, setEditModalData] = useState<Task>(initialData);
 
   useEffect(() => {
-    if (userId) dispatch(fetchUserPost(userId));
+    if (userId) dispatch(fetchUserPost({ userId }));
   }, [userId]);
 
   useEffect(() => {
     if (userId) {
       if (
         createTodoStatus === APIStatus.FULFILLED ||
-        updateTodoStatus === APIStatus.FULFILLED
+        updateTodoStatus === APIStatus.FULFILLED ||
+        deleteTodoStatus === APIStatus.FULFILLED
       ) {
-        dispatch(fetchUserPost(userId));
+        dispatch(fetchUserPost({ userId }));
       }
 
       if (updateTodoStatus === APIStatus.FULFILLED) {
         closeModal();
-      }
-      if (deleteTodoStatus === APIStatus.FULFILLED) {
-        dispatch(fetchUserPost(userId));
       }
     }
   }, [userId, createTodoStatus, updateTodoStatus, deleteTodoStatus]);
@@ -66,6 +71,11 @@ export const UserPosts = () => {
     console.log("open edit modal", task);
     setEditModalData(task);
     openModal();
+  };
+
+  const handleDateFilterChange = (e: any) => {
+    setFilter(e.target.value);
+    dispatch(fetchUserPost({ userId: userId!, fil: e.target.value }));
   };
 
   return (
@@ -88,7 +98,23 @@ export const UserPosts = () => {
           <div className="user_name">
             <h1>User{userId}</h1>
           </div>
+
           <div className="btn">
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={filter}
+              label="Age"
+              onChange={handleDateFilterChange}
+              size="small"
+            >
+              <MenuItem value={DateFilter.All}>All</MenuItem>
+              <MenuItem value={DateFilter.TODAY_TODO}>Today</MenuItem>
+              <MenuItem value={DateFilter.TOMORROW_TODO}>Tomorrow</MenuItem>
+              <MenuItem value={DateFilter.CURRENT_WEEK_TODO}>
+                Current week
+              </MenuItem>
+            </Select>
             <Button variant="contained" onClick={openModal}>
               Add new
             </Button>
@@ -96,10 +122,6 @@ export const UserPosts = () => {
 
           {userPost.data.length > 0 ? (
             <>
-              {" "}
-              {/* <Button variant="contained" onClick={openModal}>
-                  Add new
-                </Button> */}
               <div className="posts-wrapper">
                 {userPost.data.map((post, index) => (
                   <Post task={post} key={index} openEditModal={openEditModal} />

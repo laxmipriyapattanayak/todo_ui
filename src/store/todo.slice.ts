@@ -7,6 +7,17 @@ export enum APIStatus {
   FAILED,
   IDLE,
 }
+export enum DateFilter {
+  TODAY_TODO = "TODAY_TODO",
+  TOMORROW_TODO = "TOMORROW_TODO",
+  CURRENT_WEEK_TODO = "CURRENT_WEEK_TODO",
+  LAST_WEEK_TODO = "LAST_WEEK_TODO",
+  NEXT_WEEK_TODO = "NEXT_WEEK_TODO",
+  LAST_MONTH = "LAST_MONTH",
+  CURRENT_MONTH = "CURRENT_MONTH",
+  NEXT_MONTH = "NEXT_MONTH",
+  All = "All",
+}
 
 export interface IApiResponse<T> {
   data: T;
@@ -46,14 +57,19 @@ const initialState: Istate = {
 
 export const fetchUserPost = createAsyncThunk(
   "todoSlice/fetchUserPost",
-  async (userId: string) => {
-    const res = await api.userId.tasksDetail(userId);
-    return res.data;
+  async ({ userId, fil }: { userId: string; fil?: DateFilter }) => {
+    if (fil && fil !== DateFilter.All) {
+      const res = await api.userId.tasksDetail(userId, { filter: fil });
+      return res.data;
+    } else {
+      const res = await api.userId.tasksDetail(userId);
+      return res.data;
+    }
   }
 );
 
 export const createNewTodo = createAsyncThunk(
-  "createTodoSlice/createNewTodo",
+  "todoSlice/createNewTodo",
   async ({ userId, todo }: CreateTodoArgs) => {
     const res = await api.userId.tasksCreate(userId, todo);
     return res.data;
@@ -61,7 +77,7 @@ export const createNewTodo = createAsyncThunk(
 );
 
 export const updateTodo = createAsyncThunk(
-  "updateTodoSlice/updateTodo",
+  "todoSlice/updateTodo",
   async ({ userId, todo }: CreateTodoArgs) => {
     const updatedData: TaskUpdate = { ...todo, taskId: todo.taskId! };
     const res = await api.userId.tasksUpdate(todo.taskId!, userId, updatedData);
@@ -70,7 +86,7 @@ export const updateTodo = createAsyncThunk(
 );
 
 export const deleteTodo = createAsyncThunk(
-  "deleteTodoSlice/deleteTodo",
+  "todoSlice/deleteTodo",
   async ({ userId, todo }: CreateTodoArgs) => {
     await api.userId.tasksDelete(todo.taskId!, userId);
   }
@@ -91,7 +107,7 @@ export const todoSlice = createSlice({
         state.userPost.error = "some error has occured";
       })
       .addCase(fetchUserPost.fulfilled, (state, action) => {
-        state.userPost.status = APIStatus.FAILED;
+        state.userPost.status = APIStatus.FULFILLED;
         state.userPost.data = action.payload;
       })
       //create Todo

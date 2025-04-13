@@ -26,10 +26,11 @@
 }
 .btn {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
   width: 100%;
   max-width: 1200px;
+  gap: 15px;
 }
 
 .posts {

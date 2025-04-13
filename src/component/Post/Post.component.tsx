@@ -25,7 +25,7 @@ export const Post = ({
   const { userId } = useParams();
   const handledeletePost = () => {
     console.log(task);
-    dispatch(deleteTodo({ userId: String(userId), todo: task }));
+    if (userId) dispatch(deleteTodo({ userId: userId, todo: task }));
   };
   return (
     <div className="post">
