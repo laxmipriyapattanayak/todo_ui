@@ -44,6 +44,7 @@ export const Post = ({
         <CalendarMonthIcon />
         <p>{dayjs(task.date).format("D MMM YY")}</p>
       </div>
+
       <div className="post_action">
         <Chip
           label={convertStatusToLabel(task.status!)}

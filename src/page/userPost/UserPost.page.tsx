@@ -13,6 +13,7 @@ import CreateTodo from "../../component/CreateTodo/CreateTodo.component";
 import { APIStatus, DateFilter, fetchUserPost } from "../../store/todo.slice";
 import "./index.css";
 import { Task, TaskStatus } from "../../myApi";
+import CreateTag from "../../component/CreateTag/CreateTag.component";
 
 export const UserPosts = () => {
   const { userId } = useParams();
@@ -27,7 +28,11 @@ export const UserPosts = () => {
   const deleteTodoStatus = useAppSelector(
     (state) => state.todoSlice.deleteTodo.status
   );
-  const [open, setOpen] = useState<boolean>(false);
+  type ModalType = "CREATE_TODO" | "CREATE_TAG" | null;
+  const [modalType, setModalType] = useState<ModalType>(null);
+
+  //const [open, setOpen] = useState<boolean>(false);
+
   const [filter, setFilter] = useState<DateFilter>(DateFilter.All);
   const initialData = {
     description: "",
@@ -59,18 +64,20 @@ export const UserPosts = () => {
     }
   }, [userId, createTodoStatus, updateTodoStatus, deleteTodoStatus]);
 
-  const openModal = () => {
-    setOpen(true);
+  const openModal = (type: ModalType) => {
+    setModalType(type);
+    //setOpen(true);
   };
   const closeModal = () => {
-    setOpen(false);
+    //setOpen(false);
+    setModalType(null);
     setEditModalData(initialData);
   };
 
   const openEditModal = (task: Task) => {
     console.log("open edit modal", task);
     setEditModalData(task);
-    openModal();
+    openModal("CREATE_TODO");
   };
 
   const handleDateFilterChange = (e: any) => {
@@ -82,13 +89,17 @@ export const UserPosts = () => {
     <div className="parent">
       <div>
         <Modal
-          open={open}
+          open={modalType === "CREATE_TODO"}
           onClose={closeModal}
           aria-labelledby="modal-modal-title"
           aria-describedby="modal-modal-description"
         >
           <CreateTodo onClose={closeModal} data={editModalData} />
         </Modal>
+
+        <CreateTag open={modalType === "CREATE_TAG"} onClose={closeModal} />
+
+        {/* <CreateTodo onClose={closeModal} data={editModalData} /> */}
       </div>
 
       {userPost.status === APIStatus.PENDING ? (
@@ -100,6 +111,9 @@ export const UserPosts = () => {
           </div>
 
           <div className="btn">
+            <Button variant="contained" onClick={() => openModal("CREATE_TAG")}>
+              Create Tag
+            </Button>
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
@@ -115,7 +129,10 @@ export const UserPosts = () => {
                 Current week
               </MenuItem>
             </Select>
-            <Button variant="contained" onClick={openModal}>
+            <Button
+              variant="contained"
+              onClick={() => openModal("CREATE_TODO")}
+            >
               Add new
             </Button>
           </div>

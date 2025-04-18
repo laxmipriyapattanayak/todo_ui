@@ -8,6 +8,7 @@ import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const style = {
   position: "absolute",
@@ -123,21 +124,21 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         <DatePicker
           label="Select date"
           disablePast
-          value={todo.date ? dayjs(todo.date) : null} // Convert string to Dayjs
+          value={todo.date ? today : null} // Convert string to Dayjs
           onChange={(newDate) => {
             if (newDate) {
               const formatted = newDate.format("YYYY-MM-DD");
-              setTodo((prev) => ({ ...prev, date: formatted })); // Store as string
+              setTodo((prev) => ({ ...prev, date: formatted }));
               console.log("Selected date:", formatted);
             }
           }}
+          sx={{ width: "100%" }}
         />
       </LocalizationProvider>
       {/* <Typography variant="h6" sx={{ mt: 2 }}>
         Tags
-      </Typography> */}
-
-      {/* <Button>+ Add Tag</Button> */}
+      </Typography>
+      <Button>+ Add Tag</Button> */}
 
       <Button
         onClick={() => handleSubmit()}

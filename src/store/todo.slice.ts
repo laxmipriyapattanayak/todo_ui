@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { Api, Task, TaskRequest, TaskStatus, TaskUpdate } from "../myApi";
+import { Api, Task, TaskUpdate } from "../myApi";
 
 export enum APIStatus {
   PENDING,
