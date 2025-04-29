@@ -128,6 +128,7 @@ export const UserPosts = () => {
               <MenuItem value={DateFilter.CURRENT_WEEK_TODO}>
                 Current week
               </MenuItem>
+              <MenuItem value={DateFilter.NEXT_WEEK_TODO}>Next week</MenuItem>
             </Select>
             <Button
               variant="contained"
