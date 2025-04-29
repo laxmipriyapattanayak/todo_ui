@@ -148,7 +148,7 @@
 //     </div>
 //   );
 // };
-import { Task, TaskStatus } from "../../myApi";
+import { Tag, Task, TaskStatus } from "../../myApi";
 import dayjs from "dayjs";
 import "./index.css";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
@@ -158,10 +158,10 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import { Button, Chip, IconButton, Menu, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { deleteTodo } from "../../store/todo.slice";
+import { deleteTodo, updateTodo } from "../../store/todo.slice";
 import { useParams } from "react-router-dom";
 import { tags } from "../../store/tag.slice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const Post = ({
   task,
@@ -178,11 +178,40 @@ export const Post = ({
   const allTags = useAppSelector((state) => state.tagSlice.allTags.data);
 
   const [tagMenu, setTagMenu] = useState<null | HTMLElement>(null);
+  const [selectedTag, setSelectedTag] = useState<string[]>([]);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setTagMenu(event.currentTarget);
+  useEffect(() => {
+    const tagMapping: string[] = [];
+    task.tags.forEach((tag) => {
+      allTags.forEach((t) => {
+        if (t.id == tag.tagId) {
+          tagMapping.push(t.name);
+        }
+      });
+    });
+    setSelectedTag(tagMapping);
+  }, []);
+
+  const handleMenuClick = (e: React.MouseEvent<HTMLElement>) => {
+    setTagMenu(e.currentTarget);
+  };
+  const handleMenuItemClick = (tag: Tag) => {
+    handleCloseMenu();
     if (userId) {
-      dispatch(tags(userId));
+      dispatch(
+        updateTodo({
+          userId,
+          todo: {
+            ...task,
+            tags: [
+              ...task.tags,
+              {
+                tagId: tag.id,
+              },
+            ],
+          },
+        })
+      );
     }
   };
 
@@ -219,7 +248,7 @@ export const Post = ({
           {/* Check if tags are loaded and render them */}
           {allTags?.length > 0 ? (
             allTags.map((tag: { id: number; name: string }) => (
-              <MenuItem key={tag.id} onClick={handleCloseMenu}>
+              <MenuItem key={tag.id} onClick={() => handleMenuItemClick(tag)}>
                 {tag.name}
               </MenuItem>
             ))
@@ -234,21 +263,20 @@ export const Post = ({
         <p>{dayjs(task.date).format("D MMM YY")}</p>
       </div>
 
-      <div className="post_action">
-        <Chip
-          label={convertStatusToLabel(task.status!)}
-          variant="filled"
-          sx={{
-            backgroundColor:
-              task.status === TaskStatus.COMPLETED
-                ? "#c8e6c9"
-                : task.status === TaskStatus.IN_PROGRESS
-                  ? "#bbdefb"
-                  : "#ffe0b2",
-            color: "#000000",
-          }}
-        />
-      </div>
+      <Chip
+        label={convertStatusToLabel(task.status!)}
+        variant="filled"
+        sx={{
+          backgroundColor:
+            task.status === TaskStatus.COMPLETED
+              ? "#c8e6c9"
+              : task.status === TaskStatus.IN_PROGRESS
+                ? "#bbdefb"
+                : "#ffe0b2",
+          color: "#000000",
+        }}
+      />
+      <div>{selectedTag}</div>
     </div>
   );
 };

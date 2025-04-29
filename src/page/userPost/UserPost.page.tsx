@@ -14,6 +14,7 @@ import { APIStatus, DateFilter, fetchUserPost } from "../../store/todo.slice";
 import "./index.css";
 import { Task, TaskStatus } from "../../myApi";
 import CreateTag from "../../component/CreateTag/CreateTag.component";
+import { tags } from "../../store/tag.slice";
 
 export const UserPosts = () => {
   const { userId } = useParams();
@@ -45,7 +46,10 @@ export const UserPosts = () => {
   const [editModalData, setEditModalData] = useState<Task>(initialData);
 
   useEffect(() => {
-    if (userId) dispatch(fetchUserPost({ userId }));
+    if (userId) {
+      dispatch(fetchUserPost({ userId }));
+      dispatch(tags(userId));
+    }
   }, [userId]);
 
   useEffect(() => {

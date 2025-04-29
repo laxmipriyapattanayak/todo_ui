@@ -1,13 +1,15 @@
+import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import dayjs from "dayjs";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { createNewTodo, updateTodo } from "../../store/todo.slice";
-import { useAppDispatch } from "../../store/hook";
 import { Task, TaskStatus } from "../../myApi";
-import dayjs from "dayjs";
-import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers";
+import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { createNewTodo, updateTodo } from "../../store/todo.slice";
+import MultipleSelectChip from "../Tag/MultiSelect.component";
 
 const style = {
   position: "absolute",
@@ -20,19 +22,23 @@ const style = {
   p: 4,
   borderRadius: 5,
 };
-const today = dayjs();
 
 const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   const { userId } = useParams();
   const dispatch = useAppDispatch();
+  console.log(userId);
+
+  const allTags = useAppSelector((state) => state.tagSlice.allTags.data);
 
   const [errorState, setErrorState] = useState({
     title: "",
     desc: "",
   });
+
   const [todo, setTodo] = useState<Task>({
     ...data,
   });
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -41,16 +47,15 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   ) => {
     setTodo({ ...todo, [e.target.name]: e.target.value });
     console.log(todo);
-
     const errState = {
       title: "",
       desc: "",
     };
     if (e.target.name === "title" && e.target.value.length === 0) {
-      errState.title = "please enter something";
+      errState.title = "Please enter something";
     }
     if (e.target.name === "description" && e.target.value.length === 0) {
-      errState.title = "please enter something";
+      errState.desc = "Please enter something";
     }
     setErrorState(errState);
   };
@@ -58,10 +63,17 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   const handleSubmit = () => {
     if (userId) {
       if (todo.taskId) {
+        // Update the task
         dispatch(updateTodo({ userId, todo }));
       } else {
         const localTodo = todo;
-        // localTodo.date = new Date().toISOString();
+        localTodo.date = new Date().toISOString();
+        const tags = selectedTags.map((m) => {
+          return {
+            tagId: m,
+          };
+        });
+        localTodo.tags = tags;
         dispatch(createNewTodo({ userId, todo: localTodo }));
       }
     }
@@ -77,11 +89,8 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
 
   return (
     <Box sx={style}>
-      <Typography
-        variant="h5"
-        sx={{ mb: 2, fontWeight: "bold", color: "primary.main" }}
-      >
-        {todo?.taskId ? "Update To-do" : "Create To-do"}
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        {todo?.taskId ? "Update To-Do" : "Create New To-Do"}
       </Typography>
 
       <TextField
@@ -119,25 +128,35 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         <MenuItem value="IN_PROGRESS">Started</MenuItem>
         <MenuItem value="COMPLETED">Done</MenuItem>
       </TextField>
+
+      <MultipleSelectChip
+        tags={allTags}
+        selectedIds={selectedTags}
+        setSelectedIds={setSelectedTags}
+      />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePicker
-          label="Select date"
-          disablePast
-          value={todo.date ? today : null} // Convert string to Dayjs
-          onChange={(newDate) => {
-            if (newDate) {
-              const formatted = newDate.format("YYYY-MM-DD");
-              setTodo((prev) => ({ ...prev, date: formatted }));
-              console.log("Selected date:", formatted);
-            }
-          }}
-          sx={{ width: "100%" }}
-        />
+        <DemoContainer components={["DatePicker"]}>
+          <DatePicker
+            label="select date"
+            disablePast
+            value={todo.date ? dayjs(todo.date) : null}
+            onChange={(newDate: dayjs.Dayjs | null) => {
+              if (newDate) {
+                const formatted = newDate.format("YYYY-MM-DD");
+                setTodo((prev) => ({ ...prev, date: formatted }));
+                console.log("Selected date:", formatted);
+              }
+            }}
+            sx={{ width: "100%" }}
+          />
+        </DemoContainer>
       </LocalizationProvider>
-      {/* <Typography variant="h6" sx={{ mt: 2 }}>
+
+      {/* <Typography variant='h6' sx={{ mt: 2 }}>
         Tags
-      </Typography>
-      <Button>+ Add Tag</Button> */}
+      </Typography> */}
+
+      {/* <Button>+ Add Tag</Button> */}
 
       <Button
         onClick={() => handleSubmit()}
@@ -147,7 +166,7 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
         sx={{ mt: 3 }}
         disabled={!(todo.description?.length && todo.title.length)}
       >
-        {todo?.taskId ? "Update To-do" : "Create To-do"}
+        {todo?.taskId ? "Update To-Do" : "Create To-Do"}
       </Button>
     </Box>
   );
