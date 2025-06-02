@@ -3,10 +3,11 @@ import { Api, Task, TaskUpdate } from "../myApi";
 
 export enum APIStatus {
   PENDING,
-  FULFILLED,
+  FULLFILLED,
   FAILED,
   IDLE,
 }
+
 export enum DateFilter {
   TODAY_TODO = "TODAY_TODO",
   TOMORROW_TODO = "TOMORROW_TODO",
@@ -16,7 +17,7 @@ export enum DateFilter {
   LAST_MONTH = "LAST_MONTH",
   CURRENT_MONTH = "CURRENT_MONTH",
   NEXT_MONTH = "NEXT_MONTH",
-  All = "All",
+  ALL = "ALL",
 }
 
 export interface IApiResponse<T> {
@@ -25,11 +26,12 @@ export interface IApiResponse<T> {
   status: APIStatus;
 }
 
-interface Istate {
-  userPost: IApiResponse<Task[]>;
+interface IState {
+  userPosts: IApiResponse<Task[]>;
   createTodo: IApiResponse<Task>;
   updateTodo: IApiResponse<Task>;
   deleteTodo: IApiResponse<null>;
+  notifications: IApiResponse<Task[]>;
 }
 
 interface CreateTodoArgs {
@@ -39,13 +41,17 @@ interface CreateTodoArgs {
 
 const api = new Api({
   baseUrl:
-    " https://todo-app.whitewater-d0b6f62a.westeurope.azurecontainerapps.io/todo",
+    "https://todo-app.whitewater-d0b6f62a.westeurope.azurecontainerapps.io/todo",
 });
 
-const initialState: Istate = {
-  userPost: { data: [], status: APIStatus.IDLE },
+const initialState: IState = {
+  userPosts: { data: [], status: APIStatus.IDLE },
   createTodo: {
-    data: { title: "", tags: [], date: "" },
+    data: {
+      title: "",
+      tags: [],
+      date: "",
+    },
     status: APIStatus.IDLE,
   },
   updateTodo: {
@@ -53,13 +59,17 @@ const initialState: Istate = {
     status: APIStatus.IDLE,
   },
   deleteTodo: { data: null, status: APIStatus.IDLE },
+  notifications: { data: [], status: APIStatus.IDLE },
 };
 
-export const fetchUserPost = createAsyncThunk(
-  "todoSlice/fetchUserPost",
+export const fetchUserPosts = createAsyncThunk(
+  "todoSlice/fetchUserPosts",
   async ({ userId, fil }: { userId: string; fil?: DateFilter }) => {
-    if (fil && fil !== DateFilter.All) {
-      const res = await api.userId.tasksDetail(userId, { filter: fil });
+    console.log(userId, fil);
+    if (fil && fil !== DateFilter.ALL) {
+      const res = await api.userId.tasksDetail(userId, {
+        filter: fil,
+      });
       return res.data;
     } else {
       const res = await api.userId.tasksDetail(userId);
@@ -91,6 +101,14 @@ export const deleteTodo = createAsyncThunk(
     await api.userId.tasksDelete(todo.taskId!, userId);
   }
 );
+export const fetchNotifications = createAsyncThunk(
+  "todoSlice/fetchNotifications",
+  async (userId: number) => {
+    const res = await api.userId.notificationDetail(userId);
+    //console.log(res.data);
+    return res.data;
+  }
+);
 
 export const todoSlice = createSlice({
   name: "todo",
@@ -98,19 +116,19 @@ export const todoSlice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      //fetch user Todo
-      .addCase(fetchUserPost.pending, (state) => {
-        state.userPost.status = APIStatus.PENDING;
+      //fetch user posts
+      .addCase(fetchUserPosts.pending, (state) => {
+        state.userPosts.status = APIStatus.PENDING;
       })
-      .addCase(fetchUserPost.rejected, (state) => {
-        state.userPost.status = APIStatus.FAILED;
-        state.userPost.error = "some error has occured";
+      .addCase(fetchUserPosts.rejected, (state) => {
+        state.userPosts.status = APIStatus.FAILED;
+        state.userPosts.error = "Some Error Occured";
       })
-      .addCase(fetchUserPost.fulfilled, (state, action) => {
-        state.userPost.status = APIStatus.FULFILLED;
-        state.userPost.data = action.payload;
+      .addCase(fetchUserPosts.fulfilled, (state, action) => {
+        state.userPosts.status = APIStatus.FULLFILLED;
+        state.userPosts.data = action.payload;
       })
-      //create Todo
+      //create todo
       .addCase(createNewTodo.pending, (state) => {
         state.createTodo.status = APIStatus.PENDING;
       })
@@ -118,10 +136,10 @@ export const todoSlice = createSlice({
         state.createTodo.status = APIStatus.FAILED;
       })
       .addCase(createNewTodo.fulfilled, (state, action) => {
-        state.createTodo.status = APIStatus.FULFILLED;
+        state.createTodo.status = APIStatus.FULLFILLED;
         state.createTodo.data = action.payload;
       })
-      //update Todo
+      //update
       .addCase(updateTodo.pending, (state) => {
         state.updateTodo.status = APIStatus.PENDING;
       })
@@ -129,10 +147,10 @@ export const todoSlice = createSlice({
         state.updateTodo.status = APIStatus.FAILED;
       })
       .addCase(updateTodo.fulfilled, (state, action) => {
-        state.updateTodo.status = APIStatus.FULFILLED;
+        state.updateTodo.status = APIStatus.FULLFILLED;
         state.updateTodo.data = action.payload;
       })
-      //delete Todo
+      //delete
       .addCase(deleteTodo.pending, (state) => {
         state.deleteTodo.status = APIStatus.PENDING;
       })
@@ -140,10 +158,28 @@ export const todoSlice = createSlice({
         state.deleteTodo.status = APIStatus.FAILED;
       })
       .addCase(deleteTodo.fulfilled, (state) => {
-        state.deleteTodo.status = APIStatus.FULFILLED;
+        state.deleteTodo.status = APIStatus.FULLFILLED;
+      })
+      //fetch notifications
+      .addCase(fetchNotifications.pending, (state) => {
+        state.notifications.status = APIStatus.PENDING;
+      })
+      .addCase(fetchNotifications.rejected, (state) => {
+        state.notifications.status = APIStatus.FAILED;
+        state.notifications.error = "Some Error Occured";
+      })
+      .addCase(fetchNotifications.fulfilled, (state, action) => {
+        state.notifications.status = APIStatus.FULLFILLED;
+        state.notifications.data = action.payload;
       });
   },
 });
 
-todoSlice.actions = { fetchUserPost, createNewTodo, updateTodo, deleteTodo };
+todoSlice.actions = {
+  fetchUserPosts,
+  createNewTodo,
+  updateTodo,
+  fetchNotifications,
+};
+
 export default todoSlice.reducer;

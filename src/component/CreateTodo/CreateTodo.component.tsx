@@ -4,7 +4,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Task, TaskStatus } from "../../myApi";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
@@ -38,7 +38,12 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
   const [todo, setTodo] = useState<Task>({
     ...data,
   });
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    const sIds = data.tags.map((m) => m.tagId.toString());
+    setSelectedTags(sIds);
+  }, [data]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -64,13 +69,19 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
     if (userId) {
       if (todo.taskId) {
         // Update the task
+        const tags = selectedTags.map((m) => {
+          return {
+            tagId: Number(m),
+          };
+        });
+        todo.tags = tags;
         dispatch(updateTodo({ userId, todo }));
       } else {
         const localTodo = todo;
         localTodo.date = new Date().toISOString();
         const tags = selectedTags.map((m) => {
           return {
-            tagId: m,
+            tagId: Number(m),
           };
         });
         localTodo.tags = tags;
@@ -151,13 +162,6 @@ const CreateTodo = ({ onClose, data }: { onClose: () => void; data: Task }) => {
           />
         </DemoContainer>
       </LocalizationProvider>
-
-      {/* <Typography variant='h6' sx={{ mt: 2 }}>
-        Tags
-      </Typography> */}
-
-      {/* <Button>+ Add Tag</Button> */}
-
       <Button
         onClick={() => handleSubmit()}
         variant="contained"

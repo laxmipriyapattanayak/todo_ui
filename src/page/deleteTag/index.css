@@ -1,0 +1,11 @@
+.delete-tag-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}

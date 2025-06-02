@@ -1,31 +1,25 @@
 import { Button, TextField } from "@mui/material";
-import "./index.css";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./index.css";
+
 export const HomePage = () => {
-  const navigate = useNavigate();
-
+  const naviagate = useNavigate();
   const [input, setInput] = useState("");
-  const [error, setError] = useState("please enter something");
+  const [error, setError] = useState("Please enter something");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (e: any) => {
     console.log(e.target.value);
     setInput(e.target.value);
     if (e.target.value.length === 0) {
-      setError("please enter something");
+      setError("Please enter something");
     } else {
       setError("");
     }
   };
-
   const handleClick = () => {
-    // if (input.length === 0) {
-    //   setError("please input something");
-    //   return;
-    // } else {
-    //   setError("");
-    // }
-    navigate(`/user/${input}`);
+    naviagate(`/user/${input}`);
   };
 
   return (
@@ -33,13 +27,11 @@ export const HomePage = () => {
       <div className="home-wrapper">
         <TextField
           id="outlined-basic"
-          label="user name"
+          label="Username"
           variant="outlined"
           onChange={handleChange}
-          placeholder="Enter user name..."
+          placeholder="Enter Username..."
           size="medium"
-          // error={!!error.length}
-          // helperText={error}
         />
         <Button
           variant="contained"

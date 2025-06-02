@@ -1,0 +1,33 @@
+.notification-container {
+  padding: 10px;
+  min-width: 250px;
+}
+
+.notification-item {
+  background-color: #fff;
+  padding: 12px 16px;
+  margin: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.notification-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Slightly lifted on hover */
+}
+.notification-title {
+  font-weight: bold;
+}
+
+.notification-date {
+  font-size: 0.85em;
+  color: #666;
+}
+.no-ntification {
+  padding: 10px;
+  color: #999;
+  font-style: italic;
+}

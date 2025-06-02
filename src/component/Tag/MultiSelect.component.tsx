@@ -9,12 +9,11 @@ import { Theme, useTheme } from "@mui/material/styles";
 import { Tag } from "../../myApi";
 
 const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
 const MenuProps = {
   PaperProps: {
     style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+      maxHeight: ITEM_HEIGHT * 4.5,
+      margin: 0,
     },
   },
 };
@@ -57,7 +56,7 @@ export default function MultipleSelectChip({
 
   return (
     <div>
-      <FormControl sx={{ m: 1, width: 300 }}>
+      <FormControl sx={{ m: 1, margin: 0 }} fullWidth>
         <InputLabel id="demo-multiple-chip-label">Chip</InputLabel>
         <Select
           labelId="demo-multiple-chip-label"

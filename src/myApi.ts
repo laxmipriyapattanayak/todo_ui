@@ -379,9 +379,6 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
-  tasksCreate(userId: string, data: TaskRequest) {
-    throw new Error("Method not implemented.");
-  }
   users = {
     /**
      * No description
@@ -740,6 +737,21 @@ export class Api<
     tasksDetail3: (userId: number, tagId: number, params: RequestParams = {}) =>
       this.request<TagTask, void>({
         path: `/${userId}/tags/${tagId}/tasks`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationDetail
+     * @summary Get due and past due tasks
+     * @request GET:/{userId}/notification
+     */
+    notificationDetail: (userId: number, params: RequestParams = {}) =>
+      this.request<TagTask, void>({
+        path: `/${userId}/notification`,
         method: "GET",
         format: "json",
         ...params,

@@ -15,6 +15,16 @@
   margin: 0 auto;
 }
 
+/* .parent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 50px;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+} */
 .parent {
   width: 80%;
   max-width: 900px;

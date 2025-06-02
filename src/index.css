@@ -3,8 +3,18 @@
 }
 #root {
   height: 100vh;
-  padding: 0;
 }
 body {
   overflow: auto;
+}
+
+.fixed {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+.notification {
+  position: absolute;
+  top: 20px;
+  right: 60px;
 }

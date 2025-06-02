@@ -1,40 +1,69 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
+  Badge,
   Button,
   CircularProgress,
+  IconButton,
   MenuItem,
   Modal,
   Select,
 } from "@mui/material";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Post } from "../../component/Post/Post.component";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { useNavigate, useParams } from "react-router-dom";
 import CreateTodo from "../../component/CreateTodo/CreateTodo.component";
-import { APIStatus, DateFilter, fetchUserPost } from "../../store/todo.slice";
+import { Post } from "../../component/Post/Post.component";
+import CreateTag from "../../component/Tag/CreateTag.component";
+
+import { Tag, Task, TaskStatus } from "../../myApi";
+import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { getTaskByTag, tags } from "../../store/tag.slice";
+import {
+  APIStatus,
+  DateFilter,
+  fetchNotifications,
+  fetchUserPosts,
+} from "../../store/todo.slice";
 import "./index.css";
-import { Task, TaskStatus } from "../../myApi";
-import CreateTag from "../../component/CreateTag/CreateTag.component";
-import { tags } from "../../store/tag.slice";
+import { NotificationPopover } from "../../component/notification/Notification.component";
+import TagsMenu from "../../component/Tag/TagsMenu.component";
 
 export const UserPosts = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { userPost } = useAppSelector((state) => state.todoSlice);
+  // const allTags = useAppSelector((state) => state.tagSlice.allTags.data);
+  const { userPosts } = useAppSelector((state) => state.todoSlice);
+  const { taskByTag } = useAppSelector((state) => state.tagSlice);
+  const { notifications } = useAppSelector((state) => state.todoSlice);
+  const notificationCount = notifications.data.length;
+
   const createTodoStatus = useAppSelector(
     (state) => state.todoSlice.createTodo.status
   );
+
   const updateTodoStatus = useAppSelector(
     (state) => state.todoSlice.updateTodo.status
   );
+
   const deleteTodoStatus = useAppSelector(
     (state) => state.todoSlice.deleteTodo.status
   );
   type ModalType = "CREATE_TODO" | "CREATE_TAG" | null;
-  const [modalType, setModalType] = useState<ModalType>(null);
+  const [open, setOpen] = useState<ModalType>(null);
+  const [filter, setFilter] = useState<DateFilter>(DateFilter.ALL);
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  //const [open, setOpen] = useState<boolean>(false);
+  const handleNotificationClick = (e: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(e.currentTarget);
+  };
 
-  const [filter, setFilter] = useState<DateFilter>(DateFilter.All);
+  const handleClosePopover = () => {
+    setAnchorEl(null);
+  };
+
   const initialData = {
     description: "",
     title: "",
@@ -47,34 +76,44 @@ export const UserPosts = () => {
 
   useEffect(() => {
     if (userId) {
-      dispatch(fetchUserPost({ userId }));
+      dispatch(fetchUserPosts({ userId }));
       dispatch(tags(userId));
+      dispatch(fetchNotifications(Number(userId)));
     }
   }, [userId]);
 
   useEffect(() => {
     if (userId) {
       if (
-        createTodoStatus === APIStatus.FULFILLED ||
-        updateTodoStatus === APIStatus.FULFILLED ||
-        deleteTodoStatus === APIStatus.FULFILLED
+        createTodoStatus === APIStatus.FULLFILLED ||
+        updateTodoStatus === APIStatus.FULLFILLED ||
+        deleteTodoStatus === APIStatus.FULLFILLED
       ) {
-        dispatch(fetchUserPost({ userId }));
+        dispatch(fetchUserPosts({ userId }));
       }
 
-      if (updateTodoStatus === APIStatus.FULFILLED) {
+      if (updateTodoStatus === APIStatus.FULLFILLED) {
         closeModal();
       }
     }
-  }, [userId, createTodoStatus, updateTodoStatus, deleteTodoStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createTodoStatus, updateTodoStatus, deleteTodoStatus]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const intervalId = setInterval(() => {
+      dispatch(fetchNotifications(Number(userId)));
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [userId]);
 
   const openModal = (type: ModalType) => {
-    setModalType(type);
-    //setOpen(true);
+    setOpen(type);
   };
   const closeModal = () => {
-    //setOpen(false);
-    setModalType(null);
+    setOpen(null);
     setEditModalData(initialData);
   };
 
@@ -86,37 +125,73 @@ export const UserPosts = () => {
 
   const handleDateFilterChange = (e: any) => {
     setFilter(e.target.value);
-    dispatch(fetchUserPost({ userId: userId!, fil: e.target.value }));
+    setSelectedTag(null);
+    dispatch(fetchUserPosts({ userId: userId!, fil: e.target.value }));
+  };
+  const handleMenuItemClick = (tag: Tag | null) => {
+    setSelectedTag(tag);
+    if (userId) {
+      if (tag) {
+        dispatch(getTaskByTag({ userId, tagId: tag.id.toString() }));
+      } else {
+        dispatch(fetchUserPosts({ userId, fil: filter }));
+      }
+    }
+  };
+  const postsToShow = selectedTag ? taskByTag.data : userPosts.data;
+
+  const goBack = () => {
+    navigate("/");
   };
 
   return (
     <div className="parent">
+      <div className="fixed">
+        <IconButton onClick={goBack}>
+          <ArrowBackIcon fontSize="medium" />
+        </IconButton>
+      </div>
+      <div className="notification">
+        <IconButton onClick={handleNotificationClick}>
+          <Badge badgeContent={notificationCount} color="error">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
+        <NotificationPopover
+          anchorEl={anchorEl}
+          onClose={handleClosePopover}
+          notifications={notifications.data}
+        />
+      </div>
       <div>
         <Modal
-          open={modalType === "CREATE_TODO"}
+          open={open === "CREATE_TODO"}
           onClose={closeModal}
           aria-labelledby="modal-modal-title"
           aria-describedby="modal-modal-description"
         >
           <CreateTodo onClose={closeModal} data={editModalData} />
         </Modal>
-
-        <CreateTag open={modalType === "CREATE_TAG"} onClose={closeModal} />
-
-        {/* <CreateTodo onClose={closeModal} data={editModalData} /> */}
       </div>
-
-      {userPost.status === APIStatus.PENDING ? (
+      <CreateTag open={open === "CREATE_TAG"} onClose={closeModal} />
+      {userPosts.status === APIStatus.PENDING ? (
         <CircularProgress />
       ) : (
         <div className="posts">
           <div className="user_name">
             <h1>User{userId}</h1>
           </div>
-
           <div className="btn">
+            <TagsMenu handleMenuItemClick={handleMenuItemClick} />
             <Button variant="contained" onClick={() => openModal("CREATE_TAG")}>
               Create Tag
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => navigate(`/user/${userId}/delete-tag`)}
+            >
+              Delete Tag
             </Button>
             <Select
               labelId="demo-simple-select-label"
@@ -126,14 +201,16 @@ export const UserPosts = () => {
               onChange={handleDateFilterChange}
               size="small"
             >
-              <MenuItem value={DateFilter.All}>All</MenuItem>
+              <MenuItem value={DateFilter.ALL}>All</MenuItem>
               <MenuItem value={DateFilter.TODAY_TODO}>Today</MenuItem>
               <MenuItem value={DateFilter.TOMORROW_TODO}>Tomorrow</MenuItem>
+              <MenuItem value={DateFilter.LAST_WEEK_TODO}>Last week</MenuItem>
               <MenuItem value={DateFilter.CURRENT_WEEK_TODO}>
                 Current week
               </MenuItem>
               <MenuItem value={DateFilter.NEXT_WEEK_TODO}>Next week</MenuItem>
             </Select>
+
             <Button
               variant="contained"
               onClick={() => openModal("CREATE_TODO")}
@@ -141,11 +218,10 @@ export const UserPosts = () => {
               Add new
             </Button>
           </div>
-
-          {userPost.data.length > 0 ? (
+          {postsToShow.length > 0 ? (
             <>
               <div className="posts-wrapper">
-                {userPost.data.map((post, index) => (
+                {postsToShow.map((post, index) => (
                   <Post task={post} key={index} openEditModal={openEditModal} />
                 ))}
               </div>
